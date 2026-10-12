@@ -6,6 +6,7 @@
   1. 각 문제 함수의 `raise NotImplementedError` 줄을 지우고 직접 구현한다.
   2. `python python_cheatsheet_workbook.py` 로 실행하면 문제별로 통과/실패/미풀이가 표시된다.
      특정 섹션만 보려면: `python python_cheatsheet_workbook.py 3`  (3 = dict/set)
+     한 문제만 보려면:   `python python_cheatsheet_workbook.py 3-2`  (여러 개: `3-2 4 5-1`)
   3. 막히면 아래 순서로 힌트를 본다.
        힌트1: 방향을 잡는 질문
        힌트2: 써야 할 개념/함수 이름
@@ -763,10 +764,11 @@ def _tests():
     ]
 
 
-def _run(section=None):
+def _run(targets=()):
+    """targets: "3" 같은 섹션 번호나 "3-2" 같은 문제 번호. 비어 있으면 전체."""
     passed = failed = todo = 0
     for sec, name, fn in _tests():
-        if section is not None and sec != section:
+        if targets and sec not in targets and name.split()[0] not in targets:
             continue
         try:
             ok = fn()
@@ -783,13 +785,16 @@ def _run(section=None):
         except Exception as e:  # 풀이 코드에서 난 에러도 보여준다
             print(f"  💥 {name}  {type(e).__name__}: {e}")
             failed += 1
+    if passed + failed + todo == 0:
+        print(f"  해당하는 문제가 없다: {' '.join(targets)}  (예: 3 또는 3-2)")
+        return
     print(f"\n통과 {passed} · 실패 {failed} · 미풀이 {todo}")
 
 
 if __name__ == "__main__":
     import sys
     sys.stdout.reconfigure(encoding="utf-8")  # Windows(cp949)에서 이모지 출력 에러 방지
-    _run(sys.argv[1] if len(sys.argv) > 1 else None)
+    _run(sys.argv[1:])
 
 
 # ════════════════════════════════════════════════════════════════════
