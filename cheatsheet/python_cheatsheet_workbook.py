@@ -631,65 +631,150 @@ def ex7_2_fast_membership(haystack, needles):
 # 채점기 (건드리지 않아도 됨)
 # ════════════════════════════════════════════════════════════════════
 
+_current_call = [None]  # 💥 에러가 났을 때 어떤 호출이었는지 보여주기 위해 기록
+
+
+def _eq(actual, expected, call):
+    """actual != expected 면 호출/내 결과/기대값을 담은 AssertionError를 던진다."""
+    if actual == expected and type(actual) is type(expected):
+        return
+    if isinstance(actual, dict) and isinstance(expected, dict):
+        keys = [k for k in expected if actual.get(k) != expected[k]]
+        keys += [k for k in actual if k not in expected]
+        mine = "{" + ", ".join(f"{k!r}: {actual.get(k, '(없음)')!r}" for k in keys) + "}"
+        want = "{" + ", ".join(f"{k!r}: {expected.get(k, '(없어야 함)')!r}" for k in keys) + "}"
+        lines = [f"호출    {call}", f"틀린 키만 → 내 결과 {mine}", f"           기대값  {want}"]
+    else:
+        lines = [f"호출    {call}", f"내 결과 {actual!r}", f"기대값  {expected!r}"]
+        if actual is None:
+            lines.append("→ return 을 빠뜨리지 않았나?")
+        elif actual == expected:
+            lines.append(f"→ 값은 같지만 타입이 다르다 ({type(actual).__name__} vs {type(expected).__name__})")
+    raise AssertionError("\n" + "\n".join("       " + s for s in lines))
+
+
+def _call(fn, *args):
+    """fn(*args) 를 호출하면서, 에러 메시지용으로 호출 모양을 문자열로 남긴다."""
+    call = f"{fn.__name__}({', '.join(map(repr, args))})"
+    _current_call[0] = call
+    return fn(*args), call
+
+
+def _expect(*cases):
+    """각 case = (함수, 인자..., 기대값). 위에서부터 차례로 검사한다."""
+    def run():
+        for fn, *args, expected in cases:
+            actual, call = _call(fn, *args)
+            _eq(actual, expected, call)
+    return run
+
+
 def _tests():
-    import copy
-
-    def t0_3():
-        assert ex0_3_zip(["a", "b", "c"], [70, 50, 90]) == ["a", "c"]
-
-    def t1_6():
-        assert ex1_6_caesar("ab z", 1) == "bc a"
-        assert ex1_6_caesar("xyz", 3) == "abc"
-
     def t2_1():
-        g = ex2_1_grid(3, 2)
-        assert g == [[0, 0], [0, 0], [0, 0]]
+        g, call = _call(ex2_1_grid, 3, 2)
+        _eq(g, [[0, 0], [0, 0], [0, 0]], call)
         g[0][0] = 1
-        assert g[1][0] == 0, "한 행을 바꿨더니 다른 행도 바뀌었다"
+        assert g[1][0] == 0, f"g[0][0] = 1 했더니 g 가 {g} 가 됐다. 행들이 같은 리스트를 공유하고 있다"
 
     def t2_4():
         a = [[1, 2], [3, 4]]
-        b = ex2_4_copy(a)
+        b, call = _call(ex2_4_copy, a)
         b[0][0] = 99
-        assert a == [[1, 2], [3, 4]], "원본이 바뀌었다"
-        assert b == [[99, 2], [3, 4]]
+        assert a == [[1, 2], [3, 4]], f"복사본에서 b[0][0] = 99 했더니 원본이 {a} 가 됐다"
+        _eq(b, [[99, 2], [3, 4]], call + " 후 b[0][0] = 99")
 
     def t2_7():
         a = [1, 2, 1, 3]
-        assert ex2_7_remove_all(a, 1) == [2, 3]
-        assert a == [1, 2, 1, 3], "원본이 바뀌었다"
+        r, call = _call(ex2_7_remove_all, a, 1)
+        assert a == [1, 2, 1, 3], f"원본이 {a} 로 바뀌었다"
+        _eq(r, [2, 3], call)
 
     def t4_1():
         a = [3, 1, 2]
-        assert ex4_1_sort_vs_sorted(a) == [3, 2, 1]
-        assert a == [3, 1, 2], "원본이 바뀌었다"
-
-    def t4_5():
-        assert ex4_5_largest_number([6, 10, 2]) == "6210"
-        assert ex4_5_largest_number([3, 30, 34, 5, 9]) == "9534330"
-        assert ex4_5_largest_number([0, 0, 0]) == "0"
-
-    def t5_2():
-        assert ex5_2_counter_sub(["a", "b", "a"], ["a", "b"]) == "a"
-        assert ex5_2_counter_sub(["leo", "kiki", "eden"], ["eden", "kiki"]) == "leo"
-
-    def t5_6():
-        g = {1: [2, 3], 2: [4], 3: [4], 4: []}
-        assert ex5_6_bfs(g, 1) == [1, 2, 3, 4]
-        g2 = {1: [3, 2], 2: [1], 3: [4], 4: [1]}
-        assert ex5_6_bfs(g2, 1) == [1, 3, 2, 4]
+        r, call = _call(ex4_1_sort_vs_sorted, a)
+        assert a == [3, 1, 2], f"원본이 {a} 로 바뀌었다"
+        _eq(r, [3, 2, 1], call)
 
     def t5_7():
-        r = ex5_7_defaultdict_group([("pop", "a"), ("rock", "b"), ("pop", "c")])
-        assert type(r) is dict, "defaultdict 말고 일반 dict로 돌려줘야 한다"
-        assert r == {"pop": ["a", "c"], "rock": ["b"]}
+        r, call = _call(ex5_7_defaultdict_group, [("pop", "a"), ("rock", "b"), ("pop", "c")])
+        assert type(r) is dict, f"{type(r).__name__} 말고 일반 dict로 돌려줘야 한다"
+        _eq(r, {"pop": ["a", "c"], "rock": ["b"]}, call)
 
-    def t6_4():
-        assert ex6_4_deep_recursion(10) == 55
-        assert ex6_4_deep_recursion(5000) == 12502500
+    def t7_2():
+        import time
+        hay = list(range(200_000))
+        needles = list(range(100_000, 300_000))
+        call = "ex7_2_fast_membership(0~199999, 100000~299999)"
+        _current_call[0] = call
+        st = time.time()
+        r = ex7_2_fast_membership(hay, needles)
+        elapsed = time.time() - st
+        assert r is not None, "return 을 빠뜨리지 않았나?"
+        assert r == [True] * 100_000 + [False] * 100_000, "앞 10만 개는 True, 뒤 10만 개는 False 여야 한다"
+        assert elapsed < 1.0, f"{elapsed:.2f}초 걸렸다. 1초 안에 끝나야 한다"
 
-    def t7_1():
-        assert ex7_1_complexity_quiz() == {
+    return [
+        ("0", "0-1 solution 형식", _expect((ex0_1_solution_format, [1, 2, 3], 6))),
+        ("0", "0-2 enumerate", _expect((ex0_2_enumerate, ["a", "b"], ["0:a", "1:b"]))),
+        ("0", "0-3 zip", _expect((ex0_3_zip, ["a", "b", "c"], [70, 50, 90], ["a", "c"]))),
+        ("0", "0-4 삼항", _expect((ex0_4_ternary, 4, "Even"), (ex0_4_ternary, 7, "Odd"))),
+        ("0", "0-5 divmod", _expect((ex0_5_divmod, 135, (2, 15)))),
+        ("1", "1-1 뒤집기", _expect((ex1_1_reverse, "abc", "cba"))),
+        ("1", "1-2 회문", _expect((ex1_2_is_palindrome, "Level", True), (ex1_2_is_palindrome, "abc", False))),
+        ("1", "1-3 split/join", _expect((ex1_3_split_join, "I love python", "python love I"))),
+        ("1", "1-4 count", _expect((ex1_4_count_char, "banana", "a", 3))),
+        ("1", "1-5 isdigit", _expect((ex1_5_only_digits, "a1b2c3", 123))),
+        ("1", "1-6 ord/chr", _expect((ex1_6_caesar, "ab z", 1, "bc a"), (ex1_6_caesar, "xyz", 3, "abc"))),
+        ("1", "1-7 strip/replace", _expect((ex1_7_strip_replace, "  a-b-c  ", "a b c"))),
+        ("1", "1-8 f-string", _expect((ex1_8_format, "kim", 3.14159, "kim: 3.14"))),
+        ("1", "1-9 불변성", _expect((ex1_9_immutable, "hello", 0, "j", "jello"), (ex1_9_immutable, "abc", 2, "z", "abz"))),
+        ("2", "2-1 2차원 초기화", t2_1),
+        ("2", "2-2 컴프리헨션", _expect((ex2_2_squares_of_even, [1, 2, 3, 4], [4, 16]))),
+        ("2", "2-3 스택", _expect((ex2_3_stack, [("push", 1), ("push", 2), ("pop", None), ("push", 3), ("pop", None), ("pop", None)], [2, 3, 1]))),
+        ("2", "2-4 깊은 복사", t2_4),
+        ("2", "2-5 any/all", _expect((ex2_5_any_all, [1, 2, 0], (False, True)), (ex2_5_any_all, [1, 2], (True, False)))),
+        ("2", "2-6 별표 언패킹", _expect((ex2_6_unpack, [1, 2, 3, 4], (1, 4, [2, 3])), (ex2_6_unpack, [1, 2], (1, 2, [])))),
+        ("2", "2-7 값 모두 제거", t2_7),
+        ("2", "2-8 최댓값 인덱스", _expect((ex2_8_index_of_max, [3, 9, 2, 9], 1))),
+        ("3", "3-1 get 기본값", _expect((ex3_1_word_count, ["a", "b", "a"], {"a": 2, "b": 1}))),
+        ("3", "3-2 items/max key", _expect((ex3_2_items_loop, {"a": 50, "b": 90, "c": 70}, "b"))),
+        ("3", "3-3 setdefault", _expect((ex3_3_group, ["apple", "avocado", "banana"], {"a": ["apple", "avocado"], "b": ["banana"]}))),
+        ("3", "3-4 순서 유지 중복 제거", _expect((ex3_4_dedup_keep_order, [3, 1, 3, 2, 1], [3, 1, 2]))),
+        ("3", "3-5 집합 연산", _expect((ex3_5_set_ops, [1, 2, 3], [2, 3, 4], ([2, 3], [1], [1, 4])))),
+        ("3", "3-6 튜플 키", _expect((ex3_6_tuple_key, [(0, 0), (1, 2), (0, 0)], 2))),
+        ("3", "3-7 two sum", _expect((ex3_7_two_sum, [2, 7, 11, 15], 9, (0, 1)), (ex3_7_two_sum, [3, 2, 4], 6, (1, 2)))),
+        ("4", "4-1 sort vs sorted", t4_1),
+        ("4", "4-2 튜플 key", _expect((ex4_2_sort_by_len, ["bb", "a", "ab", "c"], ["a", "c", "ab", "bb"]))),
+        ("4", "4-3 음수 key", _expect((ex4_3_mixed_order, [("b", 20), ("a", 20), ("c", 30)], [("c", 30), ("a", 20), ("b", 20)]))),
+        ("4", "4-4 안정 정렬", _expect((ex4_4_stable, [("z", 2), ("a", 1), ("y", 2), ("b", 1)], [("a", 1), ("b", 1), ("z", 2), ("y", 2)]))),
+        ("4", "4-5 가장 큰 수", _expect(
+            (ex4_5_largest_number, [6, 10, 2], "6210"),
+            (ex4_5_largest_number, [3, 30, 34, 5, 9], "9534330"),
+            (ex4_5_largest_number, [0, 0, 0], "0"),
+        )),
+        ("4", "4-6 max key", _expect((ex4_6_max_with_key, ["ab", "abcd", "xyzw", "a"], "abcd"))),
+        ("5", "5-1 most_common", _expect((ex5_1_counter_top, "abracadabra", "a"))),
+        ("5", "5-2 Counter 뺄셈", _expect(
+            (ex5_2_counter_sub, ["a", "b", "a"], ["a", "b"], "a"),
+            (ex5_2_counter_sub, ["leo", "kiki", "eden"], ["eden", "kiki"], "leo"),
+        )),
+        ("5", "5-3 애너그램", _expect((ex5_3_is_anagram, "listen", "silent", True), (ex5_3_is_anagram, "aab", "abb", False))),
+        ("5", "5-4 deque 큐", _expect((ex5_4_queue, [1, 4, 3], 2, [1, 3, 1]))),
+        ("5", "5-5 rotate", _expect((ex5_5_rotate, [1, 2, 3, 4, 5], 2, [4, 5, 1, 2, 3]))),
+        ("5", "5-6 BFS", _expect(
+            (ex5_6_bfs, {1: [2, 3], 2: [4], 3: [4], 4: []}, 1, [1, 2, 3, 4]),
+            (ex5_6_bfs, {1: [3, 2], 2: [1], 3: [4], 4: [1]}, 1, [1, 3, 2, 4]),
+        )),
+        ("5", "5-7 defaultdict", t5_7),
+        ("6", "6-1 map/join", _expect((ex6_1_print_options, [1, 2, 3], "1,2,3"))),
+        ("6", "6-2 입력 파싱", _expect((ex6_2_parse_input, "3 5 7", [3, 5, 7]))),
+        ("6", "6-3 IndexError", _expect(
+            (ex6_3_safe_get, [1, 2], 1, 2),
+            (ex6_3_safe_get, [1, 2], 2, -1),
+            (ex6_3_safe_get, [1, 2], -1, -1),
+        )),
+        ("6", "6-4 재귀 한도", _expect((ex6_4_deep_recursion, 10, 55), (ex6_4_deep_recursion, 5000, 12502500))),
+        ("7", "7-1 복잡도 퀴즈", _expect((ex7_1_complexity_quiz, {
             "list.append": "O(1)",
             "list.pop()": "O(1)",
             "list.pop(0)": "O(n)",
@@ -700,66 +785,7 @@ def _tests():
             "deque.popleft()": "O(1)",
             "sorted(list)": "O(n log n)",
             "heapq.heappush": "O(log n)",
-        }
-
-    def t7_2():
-        import time
-        hay = list(range(200_000))
-        needles = list(range(100_000, 300_000))
-        st = time.time()
-        r = ex7_2_fast_membership(hay, needles)
-        assert r[0] is True and r[-1] is False and sum(r) == 100_000
-        assert time.time() - st < 1.0, "1초를 넘겼다"
-
-    _ = copy  # noqa
-    return [
-        ("0", "0-1 solution 형식", lambda: ex0_1_solution_format([1, 2, 3]) == 6),
-        ("0", "0-2 enumerate", lambda: ex0_2_enumerate(["a", "b"]) == ["0:a", "1:b"]),
-        ("0", "0-3 zip", t0_3),
-        ("0", "0-4 삼항", lambda: (ex0_4_ternary(4), ex0_4_ternary(7)) == ("Even", "Odd")),
-        ("0", "0-5 divmod", lambda: ex0_5_divmod(135) == (2, 15)),
-        ("1", "1-1 뒤집기", lambda: ex1_1_reverse("abc") == "cba"),
-        ("1", "1-2 회문", lambda: (ex1_2_is_palindrome("Level"), ex1_2_is_palindrome("abc")) == (True, False)),
-        ("1", "1-3 split/join", lambda: ex1_3_split_join("I love python") == "python love I"),
-        ("1", "1-4 count", lambda: ex1_4_count_char("banana", "a") == 3),
-        ("1", "1-5 isdigit", lambda: ex1_5_only_digits("a1b2c3") == 123),
-        ("1", "1-6 ord/chr", t1_6),
-        ("1", "1-7 strip/replace", lambda: ex1_7_strip_replace("  a-b-c  ") == "a b c"),
-        ("1", "1-8 f-string", lambda: ex1_8_format("kim", 3.14159) == "kim: 3.14"),
-        ("1", "1-9 불변성", lambda: ex1_9_immutable("hello", 0, "j") == "jello" and ex1_9_immutable("abc", 2, "z") == "abz"),
-        ("2", "2-1 2차원 초기화", t2_1),
-        ("2", "2-2 컴프리헨션", lambda: ex2_2_squares_of_even([1, 2, 3, 4]) == [4, 16]),
-        ("2", "2-3 스택", lambda: ex2_3_stack([("push", 1), ("push", 2), ("pop", None), ("push", 3), ("pop", None), ("pop", None)]) == [2, 3, 1]),
-        ("2", "2-4 깊은 복사", t2_4),
-        ("2", "2-5 any/all", lambda: ex2_5_any_all([1, 2, 0]) == (False, True) and ex2_5_any_all([1, 2]) == (True, False)),
-        ("2", "2-6 별표 언패킹", lambda: ex2_6_unpack([1, 2, 3, 4]) == (1, 4, [2, 3]) and ex2_6_unpack([1, 2]) == (1, 2, [])),
-        ("2", "2-7 값 모두 제거", t2_7),
-        ("2", "2-8 최댓값 인덱스", lambda: ex2_8_index_of_max([3, 9, 2, 9]) == 1),
-        ("3", "3-1 get 기본값", lambda: ex3_1_word_count(["a", "b", "a"]) == {"a": 2, "b": 1}),
-        ("3", "3-2 items/max key", lambda: ex3_2_items_loop({"a": 50, "b": 90, "c": 70}) == "b"),
-        ("3", "3-3 setdefault", lambda: ex3_3_group(["apple", "avocado", "banana"]) == {"a": ["apple", "avocado"], "b": ["banana"]}),
-        ("3", "3-4 순서 유지 중복 제거", lambda: ex3_4_dedup_keep_order([3, 1, 3, 2, 1]) == [3, 1, 2]),
-        ("3", "3-5 집합 연산", lambda: ex3_5_set_ops([1, 2, 3], [2, 3, 4]) == ([2, 3], [1], [1, 4])),
-        ("3", "3-6 튜플 키", lambda: ex3_6_tuple_key([(0, 0), (1, 2), (0, 0)]) == 2),
-        ("3", "3-7 two sum", lambda: ex3_7_two_sum([2, 7, 11, 15], 9) == (0, 1) and ex3_7_two_sum([3, 2, 4], 6) == (1, 2)),
-        ("4", "4-1 sort vs sorted", t4_1),
-        ("4", "4-2 튜플 key", lambda: ex4_2_sort_by_len(["bb", "a", "ab", "c"]) == ["a", "c", "ab", "bb"]),
-        ("4", "4-3 음수 key", lambda: ex4_3_mixed_order([("b", 20), ("a", 20), ("c", 30)]) == [("c", 30), ("a", 20), ("b", 20)]),
-        ("4", "4-4 안정 정렬", lambda: ex4_4_stable([("z", 2), ("a", 1), ("y", 2), ("b", 1)]) == [("a", 1), ("b", 1), ("z", 2), ("y", 2)]),
-        ("4", "4-5 가장 큰 수", t4_5),
-        ("4", "4-6 max key", lambda: ex4_6_max_with_key(["ab", "abcd", "xyzw", "a"]) == "abcd"),
-        ("5", "5-1 most_common", lambda: ex5_1_counter_top("abracadabra") == "a"),
-        ("5", "5-2 Counter 뺄셈", t5_2),
-        ("5", "5-3 애너그램", lambda: (ex5_3_is_anagram("listen", "silent"), ex5_3_is_anagram("aab", "abb")) == (True, False)),
-        ("5", "5-4 deque 큐", lambda: ex5_4_queue([1, 4, 3], 2) == [1, 3, 1]),
-        ("5", "5-5 rotate", lambda: ex5_5_rotate([1, 2, 3, 4, 5], 2) == [4, 5, 1, 2, 3]),
-        ("5", "5-6 BFS", t5_6),
-        ("5", "5-7 defaultdict", t5_7),
-        ("6", "6-1 map/join", lambda: ex6_1_print_options([1, 2, 3]) == "1,2,3"),
-        ("6", "6-2 입력 파싱", lambda: ex6_2_parse_input("3 5 7") == [3, 5, 7]),
-        ("6", "6-3 IndexError", lambda: (ex6_3_safe_get([1, 2], 1), ex6_3_safe_get([1, 2], 2), ex6_3_safe_get([1, 2], -1)) == (2, -1, -1)),
-        ("6", "6-4 재귀 한도", t6_4),
-        ("7", "7-1 복잡도 퀴즈", t7_1),
+        }))),
         ("7", "7-2 set 멤버십", t7_2),
     ]
 
@@ -770,26 +796,27 @@ def _run(targets=()):
     for sec, name, fn in _tests():
         if targets and sec not in targets and name.split()[0] not in targets:
             continue
+        _current_call[0] = None
         try:
-            ok = fn()
-            if ok is False:
-                raise AssertionError("결과가 기대값과 다르다")
+            fn()
             print(f"  ✅ {name}")
             passed += 1
         except NotImplementedError:
             print(f"  ⬜ {name}  (아직 안 풂)")
             todo += 1
         except AssertionError as e:
-            print(f"  ❌ {name}  {e}")
+            msg = str(e)
+            print(f"  ❌ {name}{msg if msg.startswith(chr(10)) else '  ' + msg}")
             failed += 1
         except Exception as e:  # 풀이 코드에서 난 에러도 보여준다
             print(f"  💥 {name}  {type(e).__name__}: {e}")
+            if _current_call[0]:
+                print(f"       호출    {_current_call[0]}")
             failed += 1
     if passed + failed + todo == 0:
         print(f"  해당하는 문제가 없다: {' '.join(targets)}  (예: 3 또는 3-2)")
         return
     print(f"\n통과 {passed} · 실패 {failed} · 미풀이 {todo}")
-
 
 if __name__ == "__main__":
     import sys
