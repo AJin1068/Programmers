@@ -788,6 +788,7 @@ def _run(section=None):
 
 if __name__ == "__main__":
     import sys
+    sys.stdout.reconfigure(encoding="utf-8")  # Windows(cp949)에서 이모지 출력 에러 방지
     _run(sys.argv[1] if len(sys.argv) > 1 else None)
 
 
