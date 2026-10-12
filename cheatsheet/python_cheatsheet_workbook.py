@@ -30,7 +30,7 @@ def ex0_1_solution_format(numbers):
     힌트1: Kotlin의 `fun solution(numbers: IntArray): Int { return ... }` 를 Python으로 옮기면?
     힌트2: 내장 함수 sum
     """
-    raise NotImplementedError
+    return sum(numbers)
 
 
 def ex0_2_enumerate(words):
