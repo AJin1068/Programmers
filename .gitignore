@@ -1,4 +1,5 @@
 .idea/
-out/
-Programmers.iml
-*.java~
+.vscode/
+__pycache__/
+*.pyc
+.venv/
