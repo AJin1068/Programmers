@@ -42,7 +42,7 @@ def ex0_2_enumerate(words):
     힌트1: Kotlin의 forEachIndexed / withIndex() 에 해당하는 것은?
     힌트2: enumerate, f-string
     """
-    raise NotImplementedError
+    return [f"{index}:{word}" for index, word in enumerate(words)]
 
 
 def ex0_3_zip(names, scores):
@@ -54,7 +54,7 @@ def ex0_3_zip(names, scores):
     힌트1: 같은 위치의 원소끼리 묶어서 한 번에 돌 수 있을까? (Kotlin의 zip)
     힌트2: zip, 리스트 컴프리헨션 (조건 붙은 형태)
     """
-    raise NotImplementedError
+    return [name for name, score in zip(names, scores) if score >= 60]
 
 
 def ex0_4_ternary(n):
