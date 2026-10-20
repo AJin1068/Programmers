@@ -156,7 +156,14 @@ def ex1_6_caesar(s, n):
     힌트1: 문자를 숫자로 바꿨다가 다시 문자로 바꿀 수 있다면? 끝을 넘어가면 어떻게 되돌릴까?
     힌트2: ord, chr, % 26
     """
-    raise NotImplementedError
+
+    start = ord("a")
+    alphabet_count = 26
+    # 범위를 돌게 하는 공식: (위치 - 시작 + n) % 요소 총 개수 + 시작(=위치 원복)
+    return "".join(
+        chr(((ord(c) - start + n) % alphabet_count) + start) if c != " " else c
+        for c in s
+    )
 
 
 def ex1_7_strip_replace(s):
@@ -168,7 +175,7 @@ def ex1_7_strip_replace(s):
     힌트1: 메서드를 연달아 호출할 수 있다 (문자열은 불변이라 매번 새 문자열이 나온다).
     힌트2: strip, replace
     """
-    raise NotImplementedError
+    return s.strip().replace("-", " ")
 
 
 def ex1_8_format(name, score):
@@ -180,7 +187,7 @@ def ex1_8_format(name, score):
     힌트1: f-string 중괄호 안에서 숫자 형식을 지정할 수 있다. 어떤 기호 뒤에?
     힌트2: 포맷 지정자 :.2f
     """
-    raise NotImplementedError
+    return f"{name}: {score:.2f}"
 
 
 def ex1_9_immutable(s, i, ch):
@@ -191,7 +198,7 @@ def ex1_9_immutable(s, i, ch):
     힌트1: s[i] = ch 를 하면 무슨 일이 생길까? 그렇다면 우회 방법은?
     힌트2: 문자열 불변성, 슬라이싱 이어붙이기 (또는 list로 바꿨다가 join)
     """
-    raise NotImplementedError
+    return s.replace(s[i], ch)
 
 
 # ════════════════════════════════════════════════════════════════════
