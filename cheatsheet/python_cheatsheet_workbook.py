@@ -1,3 +1,5 @@
+import copy
+
 """
 코테용 Python 치트시트 문제집
 ================================
@@ -198,7 +200,11 @@ def ex1_9_immutable(s, i, ch):
     힌트1: s[i] = ch 를 하면 무슨 일이 생길까? 그렇다면 우회 방법은?
     힌트2: 문자열 불변성, 슬라이싱 이어붙이기 (또는 list로 바꿨다가 join)
     """
-    return s.replace(s[i], ch)
+
+    # s[:i] + ch + s[i + 1:] 이렇게 한줄로도 답 가능!
+    l = list(s)
+    l[i] = ch
+    return "".join(l)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -215,7 +221,10 @@ def ex2_1_grid(rows, cols):
     힌트1: [[0] * cols] * rows 로 만들면 각 행이 서로 다른 객체일까?
     힌트2: 리스트 컴프리헨션으로 행마다 새로 만들기
     """
-    raise NotImplementedError
+    # [0] * 3        # 요소: 0           → [0, 0, 0] 라서 요소가 int라 불변인데
+    # [[0, 0]] * 2   # 요소: [0, 0] 리스트 → [[0, 0], [0, 0]] 는 요소가 list라 공유하면 참조값이 같이 바뀐다
+
+    return [[0] * cols for _ in range(rows)]
 
 
 def ex2_2_squares_of_even(nums):
@@ -227,7 +236,7 @@ def ex2_2_squares_of_even(nums):
     힌트1: Kotlin의 filter { }.map { } 를 한 줄 식으로 쓴다면?
     힌트2: [식 for x in 리스트 if 조건]
     """
-    raise NotImplementedError
+    return [even * even for even in nums if even % 2 == 0]
 
 
 def ex2_3_stack(ops):
@@ -240,7 +249,16 @@ def ex2_3_stack(ops):
     힌트1: 리스트의 맨 뒤에 넣고 맨 뒤에서 빼는 메서드는?
     힌트2: append, pop(), 튜플 언패킹 (for op, x in ops)
     """
-    raise NotImplementedError
+    stack = []
+    returns = []
+
+    for op, num in ops:
+        if op == "push":
+            stack.append(num)
+        elif op == "pop":
+            returns.append(stack.pop())
+
+    return returns
 
 
 def ex2_4_copy(a):
@@ -251,7 +269,7 @@ def ex2_4_copy(a):
     힌트1: a[:] 나 list(a) 는 안쪽 리스트까지 복사할까?
     힌트2: 얕은 복사 vs 깊은 복사, copy.deepcopy (또는 행마다 슬라이싱)
     """
-    raise NotImplementedError
+    return copy.deepcopy(a)
 
 
 def ex2_5_any_all(nums):
@@ -263,7 +281,9 @@ def ex2_5_any_all(nums):
     힌트1: Kotlin의 all { } / any { } 와 같은 내장 함수가 있다. 인자로 무엇을 넘길까?
     힌트2: all, any, 제너레이터 식
     """
-    raise NotImplementedError
+    # return a, b만 써도 튜플됨
+    # all은 빈 리스트에서 조건과 상관없이 항상 True. 빈 리스트에는 어긋나는 값이 아예 없으므로.
+    return all(num > 0 for num in nums), 0 in nums
 
 
 def ex2_6_unpack(nums):
@@ -275,7 +295,8 @@ def ex2_6_unpack(nums):
     힌트1: 인덱스를 쓰지 않고 "나머지 전부"를 한 변수에 받을 수 있을까?
     힌트2: 별표 언패킹 first, *mid, last = ...
     """
-    raise NotImplementedError
+    first, *mid, last = nums
+    return first, last, mid
 
 
 def ex2_7_remove_all(nums, target):
@@ -286,7 +307,7 @@ def ex2_7_remove_all(nums, target):
     힌트1: remove()는 몇 개를 지울까? 순회 중에 원본을 지우면 무슨 문제가 생길까?
     힌트2: 조건 붙은 리스트 컴프리헨션
     """
-    raise NotImplementedError
+    return [num for num in nums if num != target]
 
 
 def ex2_8_index_of_max(nums):
@@ -297,7 +318,7 @@ def ex2_8_index_of_max(nums):
     힌트1: 최댓값을 먼저 구한 다음, 그 값의 위치를 찾는 메서드는?
     힌트2: max, list.index
     """
-    raise NotImplementedError
+    return nums.index(max(nums))
 
 
 # ════════════════════════════════════════════════════════════════════
