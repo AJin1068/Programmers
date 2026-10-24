@@ -334,7 +334,21 @@ def ex3_1_word_count(words):
     힌트1: 없는 키를 읽으면 KeyError가 난다. 없을 때 기본값을 주며 읽는 방법은?
     힌트2: dict.get(key, 기본값)
     """
-    raise NotImplementedError
+    # 파이썬은 코틀린과 달리 dict에서 없는 key를 읽으면 에러남
+    # >> .get() 으로 읽어야 None을 뱉음
+
+    dict = {}
+
+    for k in words:
+        v_in_dict = dict.get(k)
+        if v_in_dict != None:
+            dict[k] = v_in_dict + 1
+        else:
+            dict[k] = 1
+
+    # 더 Python다운 방법(getOrDefault 같은 역할): counts[w] = counts.get(w, 0) + 1
+
+    return dict
 
 
 def ex3_2_items_loop(scores):
@@ -345,7 +359,8 @@ def ex3_2_items_loop(scores):
     힌트1: 키와 값을 동시에 꺼내며 돌 수 있을까? 혹은 max에 "비교 기준"을 줄 수 있을까?
     힌트2: items(), 또는 max(dict, key=...)
     """
-    raise NotImplementedError
+    # max(scores, key=scores.get) 이렇게 푸는게 더 좋음
+    return max(scores, key=lambda x: scores[x])
 
 
 def ex3_3_group(words):
@@ -356,7 +371,12 @@ def ex3_3_group(words):
     힌트1: 키가 처음 나올 때 빈 리스트를 만들어 두는 방법은?
     힌트2: setdefault (5장에서 defaultdict로도 다시 풀어본다)
     """
-    raise NotImplementedError
+    dict = {}
+
+    for v in words:
+        dict.setdefault(v[0], []).append(v)
+
+    return dict
 
 
 def ex3_4_dedup_keep_order(nums):
@@ -367,7 +387,16 @@ def ex3_4_dedup_keep_order(nums):
     힌트1: set(nums)는 순서를 지켜줄까? 지금까지 본 값을 기억하면서 돌면?
     힌트2: set으로 방문 체크, 또는 dict.fromkeys (dict는 삽입 순서 유지)
     """
-    raise NotImplementedError
+    my_set = set()
+    my_list = []
+
+    for num in nums:
+        if num not in my_set:
+            my_list.append(num)
+
+        my_set.add(num)
+
+    return my_list
 
 
 def ex3_5_set_ops(a, b):
@@ -379,7 +408,21 @@ def ex3_5_set_ops(a, b):
     힌트1: 수학 시간의 교집합/차집합/대칭차집합을 연산자 하나로 쓸 수 있다면?
     힌트2: &, -, ^ (set끼리), sorted
     """
-    raise NotImplementedError
+
+    # sorted: set, 문자열, dict를 넣으면 정렬된 리스트 반환
+    # ex) sorted(a_set ^ b_set) / sorted(a_set & b_set)
+    a_set = set(a)
+    b_set = set(b)
+
+    inter_list = list(a_set.intersection(b_set))
+    differ_list = list(a_set.difference(b_set))
+    sym_differ_list = list(a_set.symmetric_difference(b_set))
+
+    inter_list.sort()
+    differ_list.sort()
+    sym_differ_list.sort()
+
+    return inter_list, differ_list, sym_differ_list
 
 
 def ex3_6_tuple_key(points):
@@ -391,7 +434,7 @@ def ex3_6_tuple_key(points):
     힌트1: 리스트는 set/dict 키가 될 수 없는데 튜플은 된다. 왜일까?
     힌트2: hashable, set
     """
-    raise NotImplementedError
+    return len(set(points))
 
 
 def ex3_7_two_sum(nums, target):
@@ -403,7 +446,19 @@ def ex3_7_two_sum(nums, target):
     힌트1: 이중 for문은 O(n²)이다. 지금 보는 수의 "짝"이 앞에 있었는지 O(1)에 알 수 있다면?
     힌트2: dict에 {값: 인덱스} 저장
     """
-    raise NotImplementedError
+    dict = {}
+    sum = ()
+
+    for index, num in enumerate(nums):
+        diff = target - num
+        if diff in dict:
+            prev = dict[diff]
+            sum = (prev, index) if prev < index else (index, prev)
+            break
+
+        dict[num] = index
+
+    return sum
 
 
 # ════════════════════════════════════════════════════════════════════
