@@ -474,7 +474,7 @@ def ex4_1_sort_vs_sorted(nums):
     힌트1: 둘 중 어느 쪽이 원본을 바꾸고 None을 반환할까?
     힌트2: sorted(..., reverse=True)
     """
-    raise NotImplementedError
+    return sorted(nums, reverse=True)
 
 
 def ex4_2_sort_by_len(words):
@@ -486,7 +486,7 @@ def ex4_2_sort_by_len(words):
     힌트1: Kotlin의 sortedWith(compareBy({ it.length }, { it })) 를 key 하나로 표현하려면 무엇을 반환해야 할까?
     힌트2: key=lambda + 튜플 (튜플은 앞 원소부터 비교)
     """
-    raise NotImplementedError
+    return sorted(words, key=lambda k: (len(k), k))
 
 
 def ex4_3_mixed_order(people):
@@ -498,7 +498,7 @@ def ex4_3_mixed_order(people):
     힌트1: reverse=True 를 쓰면 이름까지 뒤집힌다. 숫자 하나만 거꾸로 하려면?
     힌트2: 숫자에 음수 부호 붙이기
     """
-    raise NotImplementedError
+    return sorted(people, key=lambda tup: (-tup[1], tup[0]))
 
 
 def ex4_4_stable(records):
