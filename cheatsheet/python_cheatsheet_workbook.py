@@ -510,7 +510,12 @@ def ex4_4_stable(records):
     힌트1: Python 정렬은 키가 같으면 원래 순서를 지킬까?
     힌트2: 안정 정렬(stable sort), key=lambda r: r[1]
     """
-    raise NotImplementedError
+
+    # Python의 sorted와 .sort()는 항상 안정 정렬
+    return sorted(records, key=lambda tup: tup[1])
+
+
+from functools import cmp_to_key
 
 
 def ex4_5_largest_number(nums):
@@ -523,7 +528,21 @@ def ex4_5_largest_number(nums):
     힌트2: str 변환, 비교 기준을 바꾼 정렬 (key 트릭 또는 functools.cmp_to_key)
     (놓치기 쉬운 입력이 하나 있다. 채점기 테스트를 열어보기 전에 스스로 찾아볼 것)
     """
-    raise NotImplementedError
+
+    def sortTwo(x: str, y: str):
+        strX = str(x)
+        strY = str(y)
+        if strX + strY < strY + strX:
+            return 1
+        return -1
+
+    nums.sort(key=cmp_to_key(sortTwo))
+    return str(int("".join(str(num) for num in nums)))
+
+    # [4-5 다른 풀이] key 트릭: 원소가 999 이하라 3번 반복하면 길이가 공정해진다
+    # strs = sorted(map(str, nums), key=lambda s: s * 3, reverse=True)
+    # answer = "".join(strs)
+    # return "0" if answer[0] == "0" else answer
 
 
 def ex4_6_max_with_key(words):
@@ -534,7 +553,11 @@ def ex4_6_max_with_key(words):
     힌트1: sorted 말고 max에도 key를 줄 수 있을까?
     힌트2: max(..., key=len)
     """
-    raise NotImplementedError
+    return max(words, key=lambda k: len(k))
+
+    # [4-6 피드백] lambda로 감쌀 필요 없이 함수 자체를 넘기면 된다 (Kotlin의 String::length)
+    # return max(words, key=len)
+    # max도 key가 같으면 먼저 나온 것을 돌려준다 (안정 정렬과 같은 성질)
 
 
 # ════════════════════════════════════════════════════════════════════
