@@ -523,7 +523,6 @@ def ex4_5_largest_number(nums):
     [4-5] 이어붙여 가장 큰 수 (프로그래머스 "가장 큰 수" 축소판)
     0 이상 999 이하 정수 리스트를 이어붙여 만들 수 있는 가장 큰 수를 문자열로 return.
     예) [6, 10, 2] -> "6210",  [3, 30, 34] -> "34330"
-
     힌트1: 문자열 "3" 과 "30" 중 앞에 와야 할 것은? 길이가 다를 때 공정하게 비교하려면 어떻게 늘려볼까?
     힌트2: str 변환, 비교 기준을 바꾼 정렬 (key 트릭 또는 functools.cmp_to_key)
     (놓치기 쉬운 입력이 하나 있다. 채점기 테스트를 열어보기 전에 스스로 찾아볼 것)
@@ -575,7 +574,7 @@ def ex5_1_counter_top(s):
     힌트1: 세는 일 자체를 대신해주는 클래스가 있다. 빈도순으로 꺼내는 메서드는?
     힌트2: Counter(s).most_common(1)
     """
-    raise NotImplementedError
+    return Counter(s).most_common(1)[0][0]
 
 
 def ex5_2_counter_sub(participant, completion):
@@ -587,7 +586,18 @@ def ex5_2_counter_sub(participant, completion):
     힌트1: set 차집합을 쓰면 동명이인 때 왜 틀릴까?
     힌트2: Counter끼리 - 연산
     """
-    raise NotImplementedError
+    participant_counter = Counter(participant)
+    participant_counter.subtract(completion)
+
+    return participant_counter.most_common(1)[0][0]
+
+    # [5-2 다른 풀이] - 연산은 0 이하 항목을 버리므로 답 하나만 남는다
+    # return next(iter(Counter(participant) - Counter(completion)))
+    #
+    # [꿀팁] subtract vs -
+    #   c.subtract(x): 원본 c를 바꾸고 None 반환, 0 이하 항목도 남김 (print(c.subtract(x)) 는 None)
+    #   c1 - c2      : 새 Counter 반환, 0 이하 항목은 버림
+    # [꿀팁] dict의 첫 키: next(iter(d)) 또는 list(d)[0]  (Kotlin의 map.keys.first())
 
 
 def ex5_3_is_anagram(a, b):
@@ -599,7 +609,7 @@ def ex5_3_is_anagram(a, b):
     힌트1: 정렬해서 비교하는 방법 말고, 글자별 개수를 비교하면?
     힌트2: Counter ==
     """
-    raise NotImplementedError
+    return Counter(a) == Counter(b)
 
 
 def ex5_4_queue(tasks, k):
@@ -613,7 +623,20 @@ def ex5_4_queue(tasks, k):
     힌트1: list.pop(0) 은 왜 느릴까? 앞에서 꺼내는 게 O(1)인 자료구조는?
     힌트2: deque, popleft, append
     """
-    raise NotImplementedError
+    queue = deque(tasks)
+    return_list = []
+
+    while queue:
+        num = queue.popleft()
+
+        if num % k != 0:
+            return_list.append(num)
+        else:
+            quotient = num // k
+            if quotient != 0:
+                queue.append(quotient)
+
+    return return_list
 
 
 def ex5_5_rotate(nums, k):
@@ -625,7 +648,9 @@ def ex5_5_rotate(nums, k):
     힌트1: 슬라이싱으로도 되지만, deque에는 회전 전용 메서드가 있다. 양수/음수 방향은?
     힌트2: deque.rotate, list()
     """
-    raise NotImplementedError
+    queue = deque(nums)
+    queue.rotate(k)
+    return list(queue)
 
 
 def ex5_6_bfs(graph, start):
